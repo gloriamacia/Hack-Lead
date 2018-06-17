@@ -1,22 +1,20 @@
+
 from datetime import datetime
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.utils import np_utils
-from keras.models import Sequential
-from keras.layers import Dense # for hidden layers
 from sklearn.metrics import confusion_matrix
-import itertools
-import matplotlib.pyplot as plt
-import numpy as np
+from baseline_model import baseline_model
+from plot_confusion_matrix import plot_confusion_matrix
 
-"""Load data"""
+""" Load data """
 data = pd.read_excel("zurich_insurance.xlsx")
 data.head() # first 5 lines
 data.tail() # show only the last 5 lines
 
-"""Preprocessing"""
+""" Part 1 - Preprocessing """
 # Obtaining a Complete Dataset (Dropping Missing Values)
 data = data.dropna()
 data = data.reset_index(drop = True)
@@ -65,82 +63,23 @@ sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
-# Part 2 - Let's make the ANN!
-# define baseline model
-def baseline_model():
-	# Initialising the ANN
-    classifier = Sequential()
-    
-    # Adding the input layer and the first hidden layer
-    classifier.add(Dense(units = 24, kernel_initializer = 'uniform', activation = 'relu', input_dim = 43))
-    
-    # Adding the second hidden layer
-    classifier.add(Dense(units = 24, kernel_initializer = 'uniform', activation = 'relu'))
-    
-    # Adding the output layer
-    classifier.add(Dense(units = 4, kernel_initializer = 'uniform', activation = 'softmax'))
-    
-    # Compiling the ANN
-    classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
-    return classifier
-
+""" Part 2 - Let's make the ANN! """
+# Cross-validation
 classifier = KerasClassifier(build_fn = baseline_model, epochs = 2, batch_size = 10)
+
 kfold = KFold(n_splits = 5, shuffle = True, random_state = 0)
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = kfold)
 mean = accuracies.mean()
 std = accuracies.std()
 print("Baseline: %.2f%% (%.2f%%)" % (mean*100, std*100))
 
-# Part 3 - Making predictions and evaluating the model
+""" Part 3 - Making predictions and evaluating the model """
 # Predicting the Test set results
 classifier.fit(X_train, y_train, batch_size = 10, epochs = 2)
 y_pred = classifier.predict(X_test)
 
-# Making the Confusion Matrix
+# Confusion Matrix
+name_classes = ['A','B','C','D']
 cm = confusion_matrix(y_test.argmax(axis = 1), y_pred)
-
-def plot_confusion_matrix(cm, classes,
-                          normalize = False,
-                          title = 'Confusion matrix',
-                          cmap = plt.cm.Blues):
-    """
-    This function prints and plots the confusion matrix.
-    Normalization can be applied by setting `normalize=True`.
-    """
-    if normalize:
-        cm = cm.astype('float') / cm.sum(axis = 1)[:, np.newaxis]
-
-    plt.imshow(cm, interpolation = 'nearest', cmap = cmap)
-    plt.title(title)
-    plt.colorbar()
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation = 45)
-    plt.yticks(tick_marks, classes)
-
-    fmt = '.2f' if normalize else 'd'
-    thresh = cm.max() / 2.
-    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        plt.text(j, i, format(cm[i, j], fmt),
-                 horizontalalignment = "center",
-                 color="white" if cm[i, j] > thresh else "black")
-
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-
-plt.figure()
-plot_confusion_matrix(cm, classes = ['A','B','C','D'], normalize = True,
+plot_confusion_matrix(cm, classes = name_classes, normalize = True,
                       title = 'Normalized confusion matrix')
-plt.show()
-
-#from sklearn.externals import joblib
-## save the model to disk
-#filename = 'finalized_model.pkl'
-#joblib.dump(estimator, filename)
-#
-## some time later...
-# 
-## load the model from disk
-#loaded_model = joblib.load(filename)
-#result = loaded_model.score(X_test, y_test)
-#print(result)
