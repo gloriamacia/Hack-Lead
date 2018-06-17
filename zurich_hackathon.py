@@ -81,12 +81,28 @@ def baseline_model():
     classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
     return classifier
 
-estimator = KerasClassifier(build_fn=baseline_model, epochs=10, batch_size=10, verbose=0)
+#estimator = KerasClassifier(build_fn=baseline_model, epochs=10, batch_size=10, verbose=0)
+classifier = KerasClassifier(build_fn = baseline_model, epochs = 10, batch_size = 10)
+accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train)
+mean = accuracies.mean()
+std = accuracies.std()
+print("Baseline: %.2f%% (%.2f%%)" % (mean*100, std*100))
 
-kfold = KFold(n_splits=5, shuffle=True, random_state=0)
-results = cross_val_score(estimator, X, dummy_y, cv=kfold)
 
-print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
+
+#kfold = KFold(n_splits=5, shuffle=True, random_state=0)
+#results = cross_val_score(estimator, X, dummy_y, cv=kfold)
+#print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
+
+
+# Part 3 - Making predictions and evaluating the model
+# Predicting the Test set results
+classifier.fit(X_train, y_train, batch_size=10, epochs=10)
+y_pred = classifier.predict(X_test)
+# Making the Confusion Matrix
+from sklearn.metrics import confusion_matrix
+#cm = confusion_matrix(y_test, y_pred.round())
+esb = confusion_matrix(y_test.argmax(axis=1), y_pred.round().argmax(axis=1))
 
 #from sklearn.externals import joblib
 ## save the model to disk
@@ -100,4 +116,6 @@ print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
 #result = loaded_model.score(X_test, y_test)
 #print(result)
 
+import numpy
+numpy.unique(y_pred)
 
