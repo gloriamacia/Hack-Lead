@@ -6,6 +6,7 @@ from keras.wrappers.scikit_learn import KerasClassifier
 from keras.utils import np_utils
 from keras.models import Sequential
 from keras.layers import Dense # for hidden layers
+from sklearn.metrics import confusion_matrix
 
 """Load data"""
 data = pd.read_excel("zurich_insurance.xlsx")
@@ -61,8 +62,7 @@ sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
-# Part 2 - Now let's make the ANN!
-
+# Part 2 - Let's make the ANN!
 # define baseline model
 def baseline_model():
 	# Initialising the ANN
@@ -81,7 +81,6 @@ def baseline_model():
     classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
     return classifier
 
-#estimator = KerasClassifier(build_fn=baseline_model, epochs=10, batch_size=10, verbose=0)
 classifier = KerasClassifier(build_fn = baseline_model, epochs = 10, batch_size = 10)
 kfold = KFold(n_splits=5, shuffle=True, random_state=0)
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv=kfold)
@@ -89,20 +88,11 @@ mean = accuracies.mean()
 std = accuracies.std()
 print("Baseline: %.2f%% (%.2f%%)" % (mean*100, std*100))
 
-
-
-#kfold = KFold(n_splits=5, shuffle=True, random_state=0)
-#results = cross_val_score(estimator, X, dummy_y, cv=kfold)
-#print("Baseline: %.2f%% (%.2f%%)" % (results.mean()*100, results.std()*100))
-
-
 # Part 3 - Making predictions and evaluating the model
 # Predicting the Test set results
 classifier.fit(X_train, y_train, batch_size=10, epochs=10)
 y_pred = classifier.predict(X_test)
 # Making the Confusion Matrix
-from sklearn.metrics import confusion_matrix
-#cm = confusion_matrix(y_test, y_pred.round())
 cm = confusion_matrix(y_test.argmax(axis=1), y_pred)
 #esb = confusion_matrix(y_test.argmax(axis=1), y_pred.round().argmax(axis=1))
 
