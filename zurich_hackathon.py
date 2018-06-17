@@ -83,7 +83,8 @@ def baseline_model():
 
 #estimator = KerasClassifier(build_fn=baseline_model, epochs=10, batch_size=10, verbose=0)
 classifier = KerasClassifier(build_fn = baseline_model, epochs = 10, batch_size = 10)
-accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train)
+kfold = KFold(n_splits=5, shuffle=True, random_state=0)
+accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv=kfold)
 mean = accuracies.mean()
 std = accuracies.std()
 print("Baseline: %.2f%% (%.2f%%)" % (mean*100, std*100))
@@ -102,7 +103,8 @@ y_pred = classifier.predict(X_test)
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
 #cm = confusion_matrix(y_test, y_pred.round())
-esb = confusion_matrix(y_test.argmax(axis=1), y_pred.round().argmax(axis=1))
+cm = confusion_matrix(y_test.argmax(axis=1), y_pred)
+#esb = confusion_matrix(y_test.argmax(axis=1), y_pred.round().argmax(axis=1))
 
 #from sklearn.externals import joblib
 ## save the model to disk
