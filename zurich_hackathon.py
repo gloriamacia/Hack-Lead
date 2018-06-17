@@ -65,7 +65,7 @@ X_test = sc.transform(X_test)
 
 """ Part 2 - Let's make the ANN! """
 # Cross-validation
-classifier = KerasClassifier(build_fn = baseline_model, epochs = 2, batch_size = 10)
+classifier = KerasClassifier(build_fn = baseline_model, epochs = 100, batch_size = 10)
 
 kfold = KFold(n_splits = 5, shuffle = True, random_state = 0)
 accuracies = cross_val_score(estimator = classifier, X = X_train, y = y_train, cv = kfold)
@@ -75,7 +75,7 @@ print("Baseline: %.2f%% (%.2f%%)" % (mean*100, std*100))
 
 """ Part 3 - Making predictions and evaluating the model """
 # Predicting the Test set results
-classifier.fit(X_train, y_train, batch_size = 10, epochs = 2)
+classifier.fit(X_train, y_train, batch_size = 10, epochs = 100)
 y_pred = classifier.predict(X_test)
 
 # Confusion Matrix

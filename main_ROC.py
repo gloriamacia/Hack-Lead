@@ -81,7 +81,7 @@ classifier.add(Dense(units = 4, kernel_initializer = 'uniform',
 classifier.compile(optimizer = 'adam', loss = 'categorical_crossentropy',
                    metrics = ['accuracy'])
 
-classifier.fit(X_train, y_train, batch_size = 10, epochs = 2)
+classifier.fit(X_train, y_train, batch_size = 10, epochs = 100)
 y_score = classifier.predict(X_test)
 
 name_classes = ['A','B','C','D']
